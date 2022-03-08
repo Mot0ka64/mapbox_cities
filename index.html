@@ -19,8 +19,20 @@ body { margin: 0; padding: 0; }
         zoom: 3
     });
     let dict = (function(json) {
-    	if(json) return JSON.parse(json) else return {};
-    	})(localStorage.getItem('dict'));
+    	return json ? JSON.parse(json) :{};
+    	})(localStorage.getItem('cities'));
+
+	const render = () => {
+		for (let i = 0; i < 5; i++) {
+            let list = [];
+            for(key in dict) {
+            	if(dict[key] == i+1) {
+            		list.push(key);
+            	}
+            }
+            map.setFilter('cities-' + i, ['in', 'JCODE', ...list]);
+        }
+    }
 
     map.on('load', () => {
         map.addSource('cities', {
@@ -85,9 +97,12 @@ body { margin: 0; padding: 0; }
             	}
             	map.setFilter('cities-' + i, ['in', 'JCODE', ...list]);
             }
+            render();
             
-            localStorage.setItem('dict', JSON.stringify(dict));
+            localStorage.setItem('cities', JSON.stringify(dict));
         });
+        
+        render();
     });
 </script>
 </body>
