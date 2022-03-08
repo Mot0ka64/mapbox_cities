@@ -18,7 +18,9 @@ body { margin: 0; padding: 0; }
         minZoom: 2,
         zoom: 3
     });
-    let dict = localStorage.getItem('dict') ?? {};
+    let dict = (function(json) {
+    	if(json) return JSON.parse(json) else return {};
+    	})(localStorage.getItem('dict'));
 
     map.on('load', () => {
         map.addSource('cities', {
@@ -84,7 +86,7 @@ body { margin: 0; padding: 0; }
             	map.setFilter('cities-' + i, ['in', 'JCODE', ...list]);
             }
             
-            localStorage.setItem('dict', dict);
+            localStorage.setItem('dict', JSON.stringify(dict));
         });
     });
 </script>
