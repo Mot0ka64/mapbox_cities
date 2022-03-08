@@ -1,0 +1,92 @@
+<html>
+<head>
+<style>
+body { margin: 0; padding: 0; }
+#map { position: absolute; top: 0; bottom: 0; width: 100%; }
+</style>
+<script src='https://api.mapbox.com/mapbox-gl-js/v2.7.0/mapbox-gl.js'></script>
+<link href='https://api.mapbox.com/mapbox-gl-js/v2.7.0/mapbox-gl.css' rel='stylesheet' />
+</head>
+<body>
+<div id="map"></div>
+<script type="text/javascript">
+	mapboxgl.accessToken = 'pk.eyJ1IjoibW90b2thNjQiLCJhIjoiY2tieXduMTMxMGxkbzJ6cWUxemJnMjBncSJ9.YHK_TVGwF3_C-sG5ku--XA';
+    const map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/motoka64/cl0i0tvkp012p15r4ltex6zd1',
+        center: [139, 39],
+        minZoom: 2,
+        zoom: 3
+    });
+    let dict = localStorage.getItem('dict') ?? {};
+
+    map.on('load', () => {
+        map.addSource('cities', {
+            'type': 'vector',
+            'url': 'mapbox://motoka64.d2bnv1hb'
+        });
+
+        map.addLayer(
+            {
+                'id': 'cities',
+                'type': 'fill',
+                'source': 'cities',
+                'source-layer': 'japan_ver83-cr2et4',
+                'paint': {
+                    'fill-outline-color': '#111',
+                    'fill-color': '#fff'
+                }
+            }, 'choropleth-labels'
+        );
+        
+        const color = ['#4ff', '#3f0', '#ff0', '#f11', '#f0d'];
+
+		for(let i = 0; i < 5; i++) {
+		    map.addLayer(
+            	{
+                	'id': 'cities-'+i,
+                	'type': 'fill',
+                	'source': 'cities',
+                	'source-layer': 'japan_ver83-cr2et4',
+                	'paint': {
+                    	'fill-outline-color': '#111',
+                    	'fill-color': color[i],
+                    	'fill-opacity': 0.99
+                	},
+                	'filter': ['in', 'JCODE', '']
+            	}, 'choropleth-labels'
+        	);
+        }
+
+        map.on('click', (e) => {
+            const bbox = [
+                [e.point.x - 0.1, e.point.y - 0.1],
+                [e.point.x + 0.1, e.point.y + 0.1]
+            ];
+            // Find features intersecting the bounding box.
+            const selectedFeatures = map.queryRenderedFeatures(bbox, {
+                layers: ['cities']
+            });
+            const jcode = selectedFeatures[0].properties.JCODE;
+            if(dict[jcode]){
+            	dict[jcode] = (dict[jcode] + 1) % 6;
+            } else {
+            	dict[jcode] = 1;
+            }
+            
+            for (let i = 0; i < 5; i++) {
+            	let list = [];
+            	for(key in dict) {
+            		if(dict[key] == i+1) {
+            			list.push(key);
+            		}
+            	}
+            	map.setFilter('cities-' + i, ['in', 'JCODE', ...list]);
+            }
+            
+            localStorage.setItem('dict', dict);
+        });
+    });
+</script>
+</body>
+</html>
